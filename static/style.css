@@ -1,0 +1,181 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f8f6ef;
+    color: #222;
+    min-height: 100vh;
+    min-width: 100vw;
+}
+.container {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+}
+.sidebar {
+    background: #18181b;
+    color: #fff;
+    width: 220px;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    min-height: 100vh;
+}
+.sidebar h2 {
+    font-size: 1.5em;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+}
+.sidebar nav a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    margin: 12px 0;
+    font-weight: 500;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+}
+.sidebar nav a:hover {
+    opacity: 1;
+}
+.main {
+    flex: 1;
+    padding: 40px 60px;
+    min-width: 0;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.header h1 {
+    font-size: 2em;
+    font-weight: 700;
+}
+.add-member-form {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px #0001;
+    padding: 24px 32px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+.add-member-form input, .add-member-form select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1em;
+}
+.add-member-form button {
+    background: #eab308;
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.add-member-form button:hover {
+    background: #fde68a;
+}
+
+.members-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+.members-table th {
+    background: #18181b;
+    color: #fff;
+    padding: 12px 0;
+    border-radius: 8px 8px 0 0;
+}
+.members-table td {
+    background: #fff;
+    padding: 10px 0;
+    border-bottom: 2px solid #f3f3f3;
+    border-radius: 0 0 8px 8px;
+}
+.action-btn {
+    background: #f472b6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 6px;
+    transition: background 0.2s;
+}
+.action-btn.delete {
+    background: #f87171;
+}
+.action-btn:disabled {
+    background: #ddd;
+    color: #aaa;
+    cursor: not-allowed;
+}
+@media (max-width: 900px) {
+    .main { padding: 20px 5vw; }
+    .cards { flex-direction: column; }
+    .add-member-form { flex-direction: column; }
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.3);
+}
+.modal-content {
+    background: #fff;
+    margin: 8vh auto;
+    padding: 30px 40px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 24px #0002;
+    position: relative;
+}
+.close {
+    position: absolute;
+    right: 24px;
+    top: 18px;
+    font-size: 2em;
+    color: #888;
+    cursor: pointer;
+}
+.viewby-list {
+    list-style: none;
+    padding: 0;
+}
+.viewby-list li {
+    margin-bottom: 14px;
+}
+.viewby-list button {
+    width: 100%;
+    text-align: left;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.viewby-list button:hover {
+    background: #e0e7ef;
+}
