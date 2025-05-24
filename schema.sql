@@ -1,32 +1,38 @@
 CREATE TABLE IF NOT EXISTS students (
-    student_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    gender TEXT,
-    degree_program TEXT,
-    batch INTEGER,
-    committee TEXT
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    gender VARCHAR(20),
+    degree_program VARCHAR(100),
+    batch INT,
+    committee VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS organizations (
-    org_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    org_name TEXT NOT NULL
+    org_id INT AUTO_INCREMENT PRIMARY KEY,
+    org_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS org_roles (
-    role_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    role_name TEXT NOT NULL
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS memberships (
-    membership_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_id INTEGER NOT NULL,
-    org_id INTEGER NOT NULL,
-    role_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    semester TEXT NOT NULL,         -- "1st" or "2nd"
-    academic_year INTEGER NOT NULL, -- e.g. 2024
+    membership_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    org_id INT NOT NULL,
+    role_id INT NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    semester VARCHAR(10) NOT NULL,         -- "1st" or "2nd"
+    academic_year INT NOT NULL,            -- e.g. 2024
     FOREIGN KEY (student_id) REFERENCES students(student_id),
     FOREIGN KEY (org_id) REFERENCES organizations(org_id),
     FOREIGN KEY (role_id) REFERENCES org_roles(role_id)
 );
+
+INSERT INTO org_roles (role_name) VALUES ('President');
+INSERT INTO org_roles (role_name) VALUES ('Vice President');
+INSERT INTO org_roles (role_name) VALUES ('Secretary');
+INSERT INTO org_roles (role_name) VALUES ('Treasurer');
+INSERT INTO org_roles (role_name) VALUES ('Member');

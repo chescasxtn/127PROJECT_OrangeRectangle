@@ -1,36 +1,47 @@
 from flask import Flask, render_template, request, redirect, url_for
-import sqlite3
+import mysql.connector
 
 # Initialize Flask
 app = Flask(__name__)
-DB = 'cmsc127_project.db'
 
-# Utility function to connect to the SQLite database
+# MariaDB connection settings (update these with your actual credentials)
+DB_CONFIG = {
+    'user': 'root',        # <-- change this
+    'password': '',    # <-- change this
+    'host': 'localhost',
+    'database': '127project'     # <-- change this
+}
+
+# Utility function to connect to the MariaDB database
 def get_connection():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
+    conn = mysql.connector.connect(**DB_CONFIG)
     return conn
 
 # Home route: Displays all memberships and supporting data for forms
 @app.route('/')
 def index():
     conn = get_connection()
+    cur = conn.cursor(dictionary=True)
     # Get all membership records with joined student, org, and role details
-    memberships = conn.execute("""
-        SELECT m.membership_id, s.student_id, s.first_name || ' ' || s.last_name AS student_name,
+    cur.execute("""
+        SELECT m.membership_id, s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
                s.gender, s.degree_program, s.batch, s.committee,
-               o.org_id, o.org_name, r.role_id, r.role_name, m.status
+               o.org_id, o.org_name, r.role_id, r.role_name, m.status, m.semester, m.academic_year
         FROM memberships m
         JOIN students s ON m.student_id = s.student_id
         JOIN organizations o ON m.org_id = o.org_id
         JOIN org_roles r ON m.role_id = r.role_id
-    """).fetchall()
+    """)
+    memberships = cur.fetchall()
     # Get all students for dropdowns
-    students = conn.execute("SELECT student_id, first_name || ' ' || last_name AS full_name FROM students").fetchall()
+    cur.execute("SELECT student_id, CONCAT(first_name, ' ', last_name) AS full_name FROM students")
+    students = cur.fetchall()
     # Get all organizations for dropdowns
-    orgs = conn.execute("SELECT org_id, org_name FROM organizations").fetchall()
+    cur.execute("SELECT org_id, org_name FROM organizations")
+    orgs = cur.fetchall()
     # Get all roles for dropdowns
-    roles = conn.execute("SELECT role_id, role_name FROM org_roles").fetchall()
+    cur.execute("SELECT role_id, role_name FROM org_roles")
+    roles = cur.fetchall()
     conn.close()
     # Render the main template with all data
     return render_template('index.html', memberships=memberships, students=students, orgs=orgs, roles=roles)
@@ -52,11 +63,11 @@ def add_member():
     academic_year = request.form['academic_year']
 
     conn = get_connection()
-    cur = conn.cursor()
+    cur = conn.cursor(dictionary=True)
 
     # 1. Insert or get student
     cur.execute(
-        "SELECT student_id FROM students WHERE first_name=? AND last_name=? AND gender=? AND degree_program=? AND batch=? AND committee=?",
+        "SELECT student_id FROM students WHERE first_name=%s AND last_name=%s AND gender=%s AND degree_program=%s AND batch=%s AND committee=%s",
         (first_name, last_name, gender, degree_program, batch, committee)
     )
     student = cur.fetchone()
@@ -64,23 +75,23 @@ def add_member():
         student_id = student['student_id']
     else:
         cur.execute(
-            "INSERT INTO students (first_name, last_name, gender, degree_program, batch, committee) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO students (first_name, last_name, gender, degree_program, batch, committee) VALUES (%s, %s, %s, %s, %s, %s)",
             (first_name, last_name, gender, degree_program, batch, committee)
         )
         student_id = cur.lastrowid
 
     # 2. Insert or get organization
-    cur.execute("SELECT org_id FROM organizations WHERE org_name=?", (org_name,))
+    cur.execute("SELECT org_id FROM organizations WHERE org_name=%s", (org_name,))
     org = cur.fetchone()
     if org:
         org_id = org['org_id']
     else:
-        cur.execute("INSERT INTO organizations (org_name) VALUES (?)", (org_name,))
+        cur.execute("INSERT INTO organizations (org_name) VALUES (%s)", (org_name,))
         org_id = cur.lastrowid
 
     # 3. Insert membership record
     cur.execute(
-        "INSERT INTO memberships (student_id, org_id, role_id, status, semester, academic_year) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO memberships (student_id, org_id, role_id, status, semester, academic_year) VALUES (%s, %s, %s, %s, %s, %s)",
         (student_id, org_id, role_id, status, semester, academic_year)
     )
 
@@ -92,12 +103,13 @@ def add_member():
 @app.route('/delete/<int:membership_id>')
 def delete(membership_id):
     conn = get_connection()
-    conn.execute("DELETE FROM memberships WHERE membership_id=?", (membership_id,))
+    cur = conn.cursor()
+    cur.execute("DELETE FROM memberships WHERE membership_id=%s", (membership_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('index'))
 
-# Route to update a membership record (not yet implemented properly T T)
+# Route to update a membership record (not yet implemented properly)
 @app.route('/update/<int:membership_id>', methods=['POST'])
 def update(membership_id):
     student_id = request.form['student_id']
@@ -105,8 +117,9 @@ def update(membership_id):
     role_id = request.form['role_id']
     status = request.form['status']
     conn = get_connection()
-    conn.execute(
-        "UPDATE memberships SET student_id=?, org_id=?, role_id=?, status=? WHERE membership_id=?",
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE memberships SET student_id=%s, org_id=%s, role_id=%s, status=%s WHERE membership_id=%s",
         (student_id, org_id, role_id, status, membership_id)
     )
     conn.commit()
@@ -118,19 +131,24 @@ def update(membership_id):
 def search():
     student_id = request.args.get('student_id')
     conn = get_connection()
-    memberships = conn.execute("""
-        SELECT m.membership_id, s.student_id, s.first_name || ' ' || s.last_name AS student_name,
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT m.membership_id, s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
                s.gender, s.degree_program, s.batch, s.committee,
                o.org_id, o.org_name, r.role_id, r.role_name, m.status, m.semester, m.academic_year
         FROM memberships m
         JOIN students s ON m.student_id = s.student_id
         JOIN organizations o ON m.org_id = o.org_id
         JOIN org_roles r ON m.role_id = r.role_id
-        WHERE m.student_id = ?
-    """, (student_id,)).fetchall()
-    students = conn.execute("SELECT student_id, first_name || ' ' || last_name AS full_name FROM students").fetchall()
-    orgs = conn.execute("SELECT org_id, org_name FROM organizations").fetchall()
-    roles = conn.execute("SELECT role_id, role_name FROM org_roles").fetchall()
+        WHERE m.student_id = %s
+    """, (student_id,))
+    memberships = cur.fetchall()
+    cur.execute("SELECT student_id, CONCAT(first_name, ' ', last_name) AS full_name FROM students")
+    students = cur.fetchall()
+    cur.execute("SELECT org_id, org_name FROM organizations")
+    orgs = cur.fetchall()
+    cur.execute("SELECT role_id, role_name FROM org_roles")
+    roles = cur.fetchall()
     conn.close()
     return render_template('index.html', memberships=memberships, students=students, orgs=orgs, roles=roles)
 
