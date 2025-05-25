@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Role Holders by Academic Year</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <main class="main">
+        <h2>Role Holders by Academic Year</h2>
+        {% if years %}
+            <table class="members-table">
+                <tr>
+                    <th>Academic Year</th>
+                    <th>Semester</th>
+                    <th>Student(s)</th>
+                </tr>
+                {% for year in years %}
+                    {% for sem in ['2nd', '1st'] %}
+                        {% if grouped[year][sem] %}
+                        <tr>
+                            <td>{{ year }}</td>
+                            <td>{{ sem }}</td>
+                            <td>
+                                {% for m in grouped[year][sem] %}
+                                    {{ m.student_name }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No records found for this role and organization.</p>
+        {% endif %}
+        <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
+</div>
+</body>
+</html>

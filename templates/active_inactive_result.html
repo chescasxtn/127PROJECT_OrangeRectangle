@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Active vs Inactive Members</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <main class="main">
+        <h2>Active vs Inactive Members</h2>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% else %}
+            <p>For the last {{ result.semesters|length }} semester(s):</p>
+            <ul>
+                {% for sem, year in result.semesters %}
+                <li>{{ sem }} Semester, {{ year }}</li>
+                {% endfor %}
+            </ul>
+            <p>Total Members: {{ result.total }}</p>
+            <p>Active: {{ result.active }} ({{ result.percent_active }}%)</p>
+            <p>Inactive: {{ result.inactive }} ({{ result.percent_inactive }}%)</p>
+        {% endif %}
+        <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
+</div>
+</body>
+</html>
