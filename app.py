@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import mysql.connector
 
 # Initialize Flask
@@ -7,7 +7,7 @@ app = Flask(__name__)
 # MariaDB connection settings (update these with your actual credentials)
 DB_CONFIG = {
     'user': 'root',        # <-- change this
-    'password': '1029pqwo',    # <-- change this
+    'password': '',    # <-- change this
     'host': 'localhost',
     'database': '127project'     # <-- change this
 }
@@ -297,6 +297,88 @@ def view_alumni_as_of():
     conn.close()
 
     return render_template('alumni_as_of_result.html', alumni_members=alumni_members, academic_year=academic_year)
+  
+# @app.route('/add_fee', methods=['POST'])
+# def add_fee():
+#     org_id = request.form['org_id']
+#     member_id = request.form['member_id']
+#     fee_amount = request.form['fee_amount']
+
+#     conn = mysql.connector.connect(
+#         host="localhost",
+#         user="your_user",
+#         password="your_password",
+#         database="your_database"
+#     )
+#     cursor = conn.cursor()
+
+#     sql = "INSERT INTO fees (org_id, student_id, amount, date) VALUES (%s, %s, %s, NOW())"
+#     values = (org_id, member_id, fee_amount)
+#     cursor.execute(sql, values)
+#     conn.commit()
+
+#     cursor.close()
+#     conn.close()
+
+#     return redirect(url_for('manage_fees'))
+
+@app.route('/add_fee', methods=['POST'])
+def add_fee():
+    membership_id = request.form['membership_id']
+    fee_amount = request.form['fee_amount']
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Get student_id and org_id from membership_id
+    cursor.execute("""
+        SELECT student_id, org_id
+        FROM memberships
+        WHERE membership_id = %s
+    """, (membership_id,))
+    membership = cursor.fetchone()
+
+    if not membership:
+        cursor.close()
+        conn.close()
+        return "Invalid membership ID", 400
+
+    student_id = membership['student_id']
+    org_id = membership['org_id']
+
+    # Insert the fee
+    sql = """
+        INSERT INTO fees (org_id, student_id, membership_id, amount, date)
+        VALUES (%s, %s, %s, %s, NOW())
+    """
+    values = (org_id, student_id, membership_id, fee_amount)
+    cursor.execute(sql, values)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('index'))
+
+
+@app.route('/get_members/<int:org_id>')
+def get_members(org_id):
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # Get membership_id and full name of members in the organization
+    cur.execute("""
+        SELECT m.membership_id, CONCAT(s.first_name, ' ', s.last_name) AS full_name
+        FROM students s
+        JOIN memberships m ON s.student_id = m.student_id
+        WHERE m.org_id = %s
+    """, (org_id,))
+    
+    members = cur.fetchall()
+    conn.close()
+
+    # Return as JSON
+    return jsonify(members)
 
 if __name__ == '__main__':
     app.run(debug=True)

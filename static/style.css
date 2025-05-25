@@ -58,7 +58,7 @@ body {
     font-size: 2em;
     font-weight: 700;
 }
-.add-member-form {
+.management-form {
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 2px 8px #0001;
@@ -69,13 +69,13 @@ body {
     gap: 16px;
     align-items: center;
 }
-.add-member-form input, .add-member-form select {
+.management-form input, .management-form select {
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #ddd;
     font-size: 1em;
 }
-.add-member-form button {
+.management-form button {
     background: #eab308;
     color: #222;
     border: none;
@@ -85,7 +85,7 @@ body {
     cursor: pointer;
     transition: background 0.2s;
 }
-.add-member-form button:hover {
+.management-form button:hover {
     background: #fde68a;
 }
 

@@ -28,7 +28,7 @@
             - Form for adding a new member with fields for personal, academic, and organizational details
         -->
         <h2>Manage Membership</h2>
-        <form class="add-member-form" action="{{ url_for('add_member') }}" method="post">
+        <form class="management-form" action="{{ url_for('add_member') }}" method="post">
             <input type="text" name="first_name" placeholder="First Name" required>
             <input type="text" name="last_name" placeholder="Last Name" required>
             <select name="gender" required>
@@ -78,6 +78,22 @@
             - Placeholder for future fee management features
         -->
         <h2>Manage Fees</h2>
+        <form class="management-form" action="{{ url_for('add_fee') }}" method="post">
+            <select id="org-select" name="org_id" required>
+                <option value="">Select Organization</option>
+                {% for o in orgs %} 
+                <option value="{{ o.org_id }}">{{ o.org_name }}</option>
+                {% endfor %}
+            </select>
+
+            <select id="member-select" name="membership_id" required>
+                <option value="">Select Member</option> 
+                <!-- options will be dynamically inserted -->
+            </select>
+
+            <input type="text" name="fee_amount" placeholder="Fee Amount" required>
+            <button type="submit">Add Fee</button>
+        </form>
 
         <!--
             View Members Section
@@ -295,6 +311,27 @@ function showForm(formId) {
     // Show the selected form
     document.getElementById(formId).style.display = 'block';
 }
+
+document.getElementById('org-select').addEventListener('change', function () {
+    const orgId = this.value;
+    const memberSelect = document.getElementById('member-select');
+
+    // Clear existing options
+    memberSelect.innerHTML = '<option value="">Select Member</option>';
+
+    if (orgId) {
+        fetch(`/get_members/${orgId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.membership_id; // use membership_id instead
+                    option.textContent = member.full_name;
+                    memberSelect.appendChild(option);
+                });
+            });
+    }
+});
 </script>
 
 </body>
