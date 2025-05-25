@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alumni Members as of {{ as_of_date }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <main class="main">
+        <h2><h2>Alumni Members for Academic Year {{ academic_year }}</h2>
+        {% if alumni_members %}
+            <table class="members-table">
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Semester</th>
+                    <th>Academic Year</th>
+                </tr>
+                {% for m in alumni_members %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ m.student_name }}</td>
+                    <td>{{ m.status }}</td>
+                    <td>{{ m.semester }}</td>
+                    <td>{{ m.academic_year }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No alumni members found for this organization as of {{ as_of_date }}.</p>
+        {% endif %}
+        <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
+</div>
+</body>
+</html>

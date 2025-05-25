@@ -178,6 +178,43 @@ def view_exec_committee():
 
     return render_template('exec_committee_result.html', exec_members=exec_members)
 
+@app.route('/view_role_by_year')
+def view_role_by_year():
+    org_id = request.args.get('org_id')
+    role_id = request.args.get('role_id')
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # Get all members for this org and role, for all years and semesters
+    cur.execute("""
+        SELECT s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+               r.role_name, m.academic_year, m.semester
+        FROM memberships m
+        JOIN students s ON m.student_id = s.student_id
+        JOIN org_roles r ON m.role_id = r.role_id
+        WHERE m.org_id = %s AND m.role_id = %s
+        ORDER BY m.academic_year DESC, FIELD(m.semester, '2nd', '1st') DESC, s.last_name, s.first_name
+    """, (org_id, role_id))
+    members = cur.fetchall()
+    conn.close()
+
+    # Group by year and semester for the template
+    from collections import defaultdict
+    grouped = defaultdict(lambda: defaultdict(list))
+    years = set()
+    for m in members:
+        grouped[m['academic_year']][m['semester']].append(m)
+        years.add(m['academic_year'])
+    years = sorted(years, reverse=True)
+
+    return render_template(
+        'role_by_year_result.html',
+        years=years,
+        grouped=grouped,
+        role_name=members[0]['role_name'] if members else '',
+    )
+
 @app.route('/view_active_inactive')
 def view_active_inactive():
     org_id = request.args.get('org_id')
@@ -238,6 +275,28 @@ def view_active_inactive():
     }
 
     return render_template('active_inactive_result.html', result=result, message=None)
+
+@app.route('/view_alumni_as_of')
+def view_alumni_as_of():
+    org_id = request.args.get('org_id')
+    academic_year = request.args.get('academic_year')
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+               m.status, m.semester, m.academic_year
+        FROM memberships m
+        JOIN students s ON m.student_id = s.student_id
+        WHERE m.org_id = %s
+          AND m.status = 'alumni'
+          AND m.academic_year = %s
+        ORDER BY s.last_name, s.first_name
+    """, (org_id, academic_year))
+    alumni_members = cur.fetchall()
+    conn.close()
+
+    return render_template('alumni_as_of_result.html', alumni_members=alumni_members, academic_year=academic_year)
 
 if __name__ == '__main__':
     app.run(debug=True)
