@@ -86,7 +86,7 @@
                 {% endfor %}
             </select>
 
-            <select id="member-select" name="member_id" required>
+            <select id="member-select" name="membership_id" required>
                 <option value="">Select Member</option> 
                 <!-- options will be dynamically inserted -->
             </select>
@@ -241,7 +241,7 @@ document.getElementById('org-select').addEventListener('change', function () {
             .then(data => {
                 data.forEach(member => {
                     const option = document.createElement('option');
-                    option.value = member.student_id;
+                    option.value = member.membership_id; // use membership_id instead
                     option.textContent = member.full_name;
                     memberSelect.appendChild(option);
                 });
