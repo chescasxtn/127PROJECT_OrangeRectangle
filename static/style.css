@@ -89,6 +89,24 @@ body {
     background: #fde68a;
 }
 
+.btn {
+    background: #eab308;
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-member-form input, .search-member-form select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1em;
+}
+
 .members-table {
     width: 100%;
     border-collapse: separate;

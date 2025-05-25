@@ -7,7 +7,7 @@ app = Flask(__name__)
 # MariaDB connection settings (update these with your actual credentials)
 DB_CONFIG = {
     'user': 'root',        # <-- change this
-    'password': '',    # <-- change this
+    'password': '1029pqwo',    # <-- change this
     'host': 'localhost',
     'database': '127project'     # <-- change this
 }
@@ -129,9 +129,10 @@ def update(membership_id):
 # Route to search memberships by student
 @app.route('/search')
 def search():
-    student_id = request.args.get('student_id')
+    member_name = request.args.get('member_name', '').strip()
     conn = get_connection()
     cur = conn.cursor(dictionary=True)
+    # Search by first name or last name using LIKE for partial matches
     cur.execute("""
         SELECT m.membership_id, s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
                s.gender, s.degree_program, s.batch, s.committee,
@@ -140,8 +141,8 @@ def search():
         JOIN students s ON m.student_id = s.student_id
         JOIN organizations o ON m.org_id = o.org_id
         JOIN org_roles r ON m.role_id = r.role_id
-        WHERE m.student_id = %s
-    """, (student_id,))
+        WHERE s.first_name LIKE %s OR s.last_name LIKE %s
+    """, (f"%{member_name}%", f"%{member_name}%"))
     memberships = cur.fetchall()
     cur.execute("SELECT student_id, CONCAT(first_name, ' ', last_name) AS full_name FROM students")
     students = cur.fetchall()
@@ -151,6 +152,67 @@ def search():
     roles = cur.fetchall()
     conn.close()
     return render_template('index.html', memberships=memberships, students=students, orgs=orgs, roles=roles)
+
+@app.route('/view_active_inactive')
+def view_active_inactive():
+    org_id = request.args.get('org_id')
+    n = int(request.args.get('n', 1))
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # Get the last n (semester, academic_year) pairs for the org, ordered from most recent
+    cur.execute("""
+        SELECT DISTINCT semester, academic_year
+        FROM memberships
+        WHERE org_id = %s
+        ORDER BY academic_year DESC, 
+                 FIELD(semester, '2nd', '1st') DESC
+        LIMIT %s
+    """, (org_id, n))
+    recent_semesters = cur.fetchall()
+
+    if not recent_semesters:
+        conn.close()
+        return render_template('active_inactive_result.html', result=None, message="No data found for this organization.")
+
+    # Prepare a list of (semester, academic_year) tuples
+    sem_year_pairs = [(row['semester'], row['academic_year']) for row in recent_semesters]
+
+    # Build WHERE clause for these semesters
+    where_clauses = " OR ".join(["(semester=%s AND academic_year=%s)" for _ in sem_year_pairs])
+    params = []
+    for sem, year in sem_year_pairs:
+        params.extend([sem, year])
+
+    # Get counts of active and inactive members in those semesters
+    cur.execute(f"""
+        SELECT status, COUNT(*) as count
+        FROM memberships
+        WHERE org_id = %s AND ({where_clauses})
+        GROUP BY status
+    """, (org_id, *params))
+    status_counts = cur.fetchall()
+    conn.close()
+
+    # Calculate totals
+    total = sum(row['count'] for row in status_counts)
+    active = sum(row['count'] for row in status_counts if row['status'] == 'active')
+    inactive = sum(row['count'] for row in status_counts if row['status'] == 'inactive')
+
+    percent_active = (active / total * 100) if total else 0
+    percent_inactive = (inactive / total * 100) if total else 0
+
+    result = {
+        'total': total,
+        'active': active,
+        'inactive': inactive,
+        'percent_active': round(percent_active, 2),
+        'percent_inactive': round(percent_inactive, 2),
+        'semesters': sem_year_pairs
+    }
+
+    return render_template('active_inactive_result.html', result=result, message=None)
 
 if __name__ == '__main__':
     app.run(debug=True)
