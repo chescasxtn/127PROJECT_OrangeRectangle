@@ -153,6 +153,31 @@ def search():
     conn.close()
     return render_template('index.html', memberships=memberships, students=students, orgs=orgs, roles=roles)
 
+@app.route('/view_exec_committee')
+def view_exec_committee():
+    org_id = request.args.get('org_id')
+    academic_year = request.args.get('academic_year')
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+    # You may want to adjust the roles considered "executive committee"
+    # Here, we assume any role except 'Member' is executive
+    cur.execute("""
+        SELECT s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+               r.role_name, m.semester, m.academic_year
+        FROM memberships m
+        JOIN students s ON m.student_id = s.student_id
+        JOIN org_roles r ON m.role_id = r.role_id
+        WHERE m.org_id = %s
+          AND m.academic_year = %s
+          AND r.role_name != 'Member'
+        ORDER BY r.role_name, s.last_name, s.first_name
+    """, (org_id, academic_year))
+    exec_members = cur.fetchall()
+    conn.close()
+
+    return render_template('exec_committee_result.html', exec_members=exec_members)
+
 @app.route('/view_active_inactive')
 def view_active_inactive():
     org_id = request.args.get('org_id')
