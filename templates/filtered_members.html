@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filtered Members</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <main class="main">
+        <h2>Filtered Members</h2>
+        {% if members %}
+            <table class="members-table">
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Gender</th>
+                    <th>Degree Program</th>
+                    <th>Batch</th>
+                    <th>Committee</th>
+                    <th>Organization</th>
+                    <th>Role</th>
+                    <th>Semester</th>
+                    <th>Academic Year</th>
+                </tr>
+                {% for m in members %}
+                <tr>
+                    <td>{{ m.student_id }}</td>
+                    <td>{{ m.first_name }} {{ m.last_name }}</td>
+                    <td>{{ m.status }}</td>
+                    <td>{{ m.gender }}</td>
+                    <td>{{ m.degree_program }}</td>
+                    <td>{{ m.batch }}</td>
+                    <td>{{ m.committee }}</td>
+                    <td>{{ m.org_name }}</td>
+                    <td>{{ m.role_name }}</td>
+                    <td>{{ m.semester }}</td>
+                    <td>{{ m.academic_year }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No members found for the selected filters.</p>
+        {% endif %}
+        <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
+</div>
+</body>
+</html>

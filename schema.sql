@@ -37,13 +37,16 @@ INSERT INTO org_roles (role_name) VALUES ('Secretary');
 INSERT INTO org_roles (role_name) VALUES ('Treasurer');
 INSERT INTO org_roles (role_name) VALUES ('Member');
 
-CREATE TABLE fees (
+CREATE TABLE IF NOT EXISTS fees (
     fee_id INT AUTO_INCREMENT PRIMARY KEY,
     org_id INT,
     student_id INT,
     membership_id INT,
     amount DECIMAL(10,2),
     date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fee_status VARCHAR(20),
+    due_date DATE,
+    date_paid DATE,
     CONSTRAINT fk_org FOREIGN KEY (org_id) REFERENCES organizations(org_id),
     CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(student_id),
     CONSTRAINT fk_membership FOREIGN KEY (membership_id) REFERENCES memberships(membership_id)
