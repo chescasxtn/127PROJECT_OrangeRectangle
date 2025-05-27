@@ -265,7 +265,8 @@
                 <button type="submit">View</button>
             </form>
             </li>
-
+            
+            <!-- View -->
             <li>
                 <button type="button" onclick="showForm('formLatePayments')">
                     6. View all late payments made by all members of a given organization for a given semester and academic year.
@@ -424,10 +425,12 @@
             <td>{{ m.role_name }}</td>
             <td>{{ m.status }}</td>
             <td>
-                <form action="{{ url_for('update', membership_id=m.membership_id) }}" method="post" style="display:inline;">
-                    <button class="action-btn" type="submit" disabled>Update</button>
+                <form action="{{ url_for('update', membership_id=m.membership_id) }}" method="get" style="display:inline;">
+                    <button class="action-btn" type="submit">Update</button>
                 </form>
-                <a class="action-btn delete" href="{{ url_for('delete', membership_id=m.membership_id) }}">Delete</a>
+                <form action="{{ url_for('delete_membership', membership_id=m.membership_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this membership?');">
+                    <button type="submit" class="action-btn delete">Delete</button>
+                </form>
             </td>
         </tr>
         {% endfor %}

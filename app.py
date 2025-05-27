@@ -143,31 +143,66 @@ def add_member():
     return redirect(url_for('index'))
 
 # Route to delete a membership record
-@app.route('/delete/<int:membership_id>')
-def delete(membership_id):
+@app.route('/delete/<int:membership_id>', methods=['POST'])
+def delete_membership(membership_id):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("DELETE FROM memberships WHERE membership_id=%s", (membership_id,))
-    conn.commit()
-    conn.close()
+    try:
+        # Delete related fees first
+        cur.execute("DELETE FROM fees WHERE membership_id = %s", (membership_id,))
+        
+        # Now delete the membership
+        cur.execute("DELETE FROM memberships WHERE membership_id = %s", (membership_id,))
+        
+        conn.commit()
+    except Exception as e:
+        print("Error deleting membership:", e)
+        conn.rollback()
+    finally:
+        cur.close()
+        conn.close()
     return redirect(url_for('index'))
 
 # Route to update a membership record (not yet implemented properly)
-@app.route('/update/<int:membership_id>', methods=['POST'])
+@app.route('/update/<int:membership_id>', methods=['GET', 'POST'])
 def update(membership_id):
-    student_id = request.form['student_id']
-    org_id = request.form['org_id']
-    role_id = request.form['role_id']
-    status = request.form['status']
     conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE memberships SET student_id=%s, org_id=%s, role_id=%s, status=%s WHERE membership_id=%s",
-        (student_id, org_id, role_id, status, membership_id)
-    )
-    conn.commit()
+    cur = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        student_id = request.form['student_id']
+        org_id = request.form['org_id']
+        role_id = request.form['role_id']
+        status = request.form['status']
+
+        cur.execute("""
+            UPDATE memberships
+            SET student_id=%s, org_id=%s, role_id=%s, status=%s
+            WHERE membership_id=%s
+        """, (student_id, org_id, role_id, status, membership_id))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('index'))
+
+    # GET method — render the update form
+    cur.execute("SELECT * FROM memberships WHERE membership_id = %s", (membership_id,))
+    membership = cur.fetchone()
+
+    cur.execute("SELECT student_id, CONCAT(first_name, ' ', last_name) AS student_name FROM students")
+    students = cur.fetchall()
+
+    cur.execute("SELECT org_id, org_name FROM organizations")
+    orgs = cur.fetchall()
+
+    cur.execute("SELECT role_id, role_name FROM roles")
+    roles = cur.fetchall()
+
+    cur.close()
     conn.close()
-    return redirect(url_for('index'))
+
+    return render_template('update_membership.html', membership=membership, students=students, orgs=orgs, roles=roles)
 
 # Route to search memberships by student
 @app.route('/search')
@@ -610,6 +645,34 @@ def highest_debt():
     conn.close()
 
     return render_template('highest_debt.html', top_debtors=top_debtors, semester=semester, year=year)
+
+@app.route('/late_payments', methods=['GET'])
+def late_payments():
+    org_id = request.args.get('org_id')
+    semester = request.args.get('semester')
+    year = request.args.get('year')
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # Assumes "payment_status" or similar marks lateness; replace with actual logic if different
+    query = """
+        SELECT s.student_id, s.first_name, s.last_name, f.amount, f.due_date, f.date_paid
+        FROM fees f
+        JOIN students s ON f.student_id = s.student_id
+        JOIN memberships m ON f.membership_id = m.membership_id
+        WHERE f.org_id = %s
+          AND m.semester = %s
+          AND m.academic_year = %s
+          AND f.date_paid > f.due_date
+    """
+    cur.execute(query, (org_id, semester, year))
+    late_payments = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template('late_payments.html', payments=late_payments)
 
 if __name__ == '__main__':
     app.run(debug=True)
