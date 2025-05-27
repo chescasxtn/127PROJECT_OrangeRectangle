@@ -117,8 +117,10 @@
         <h2>View Members</h2>
         <form class="search-member-form" action="{{ url_for('search') }}" method="get" style="margin-bottom:20px;">
             <input type="text" name="member_name" placeholder="Search by Member Name" required>
+            <button class="btn" type="submit">Search</button>
             <a class="btn" href="{{ url_for('index') }}">Show All</a>
         </form>
+
         <button class="btn" id="viewByBtn" type="button">View By</button>
 
         <!--
@@ -132,8 +134,56 @@
             <h3>View Members / Fees By:</h3>
             <ul class="viewby-list">
             <li>
+                <button type="button" onclick="showForm('formViewAllMembers')">
+                    1. View all members of the organization by role, status, gender, degree program, batch (year of membership), and committee.
+                </button>
+                <form id="formViewAllMembers" class="viewby-form" style="display:none;" method="get" action="{{ url_for('view_all_members_by_filters') }}">
+                    <select name="org_id" required>
+                        <option value="">Select Organization</option>
+                        {% for o in orgs %}
+                        <option value="{{ o.org_id }}">{{ o.org_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="role_id">
+                        <option value="">Any Role</option>
+                        {% for r in roles %}
+                        <option value="{{ r.role_id }}">{{ r.role_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="status">
+                        <option value="">Any Status</option>
+                        <option value="active">active</option>
+                        <option value="inactive">inactive</option>
+                        <option value="expelled">expelled</option>
+                        <option value="suspended">suspended</option>
+                        <option value="alumni">alumni</option>
+                    </select>
+                    <select name="gender">
+                        <option value="">Any Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <select name="degree_program">
+                        <option value="">Any Degree Program</option>
+                        {% for s in students|unique(attribute='degree_program') %}
+                        <option value="{{ s.degree_program }}">{{ s.degree_program }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="batch">
+                        <option value="">Any Batch</option>
+                        {% for y in range(2010, 2031) %}
+                        <option value="{{ y }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="committee" placeholder="Committee (leave blank for any)">
+                    <button type="submit">View</button>
+                </form>
+            </li>
+            
+            <li>
                 <button type="button" onclick="showForm('form1')">
-                1. Members for a given organization with unpaid membership fees or dues for a given semester and academic year
+                2. Members for a given organization with unpaid membership fees or dues for a given semester and academic year
                 </button>
                 <form id="form1" class="viewby-form" style="display:none;" method="POST" action="{{ url_for('view_org_members_unpaid') }}">
                     <select name="org_id" required>
@@ -156,9 +206,10 @@
                     <button type="submit">View</button>
                 </form>
             </li>
+            
             <li>
                 <button type="button" onclick="showForm('form2')">
-                2. Member’s unpaid membership fees or dues for all their organizations (Member’s POV)
+                3. Member’s unpaid membership fees or dues for all their organizations (Member’s POV)
                 </button>
                 <form id="form2" class="viewby-form" style="display:none;" method="POST" action="{{ url_for('view_member_unpaid_fees') }}">
                 <select name="student_id" required>
@@ -174,7 +225,7 @@
             <!-- View -->
             <li>
             <button type="button" onclick="showForm('formExecCommittee')">
-                3. Executive committee members of a given organization for a given academic year
+                4. Executive committee members of a given organization for a given academic year
             </button>
             <form id="formExecCommittee" class="viewby-form" style="display:none;" action="{{ url_for('view_exec_committee') }}" method="get">
                 <select name="org_id" required>
@@ -196,7 +247,7 @@
             <!-- View -->
             <li>
             <button type="button" onclick="showForm('formRoleByYear')">
-                4. Presidents (or any other role) of a given organization for every academic year in reverse chronological order (current to past).
+                5. Presidents (or any other role) of a given organization for every academic year in reverse chronological order (current to past).
             </button>
             <form id="formRoleByYear" class="viewby-form" style="display:none;" action="{{ url_for('view_role_by_year') }}" method="get">
                 <select name="org_id" required>
@@ -214,38 +265,38 @@
                 <button type="submit">View</button>
             </form>
             </li>
-            <li><button type="button" onclick="showForm('formLatePayments')">5. Late payments made by all members of a given organization for a given semester and academic year.</button></li>
-            <form id="formLatePayments" action="{{ url_for('late_payments') }}" method="get" class="viewby-form" style="margin-top: 20px;">
-                <label for="org_id">Organization:</label>
-                <select name="org_id" required>
-                    <option value="">Select Organization</option>
-                    {% for o in orgs %}
-                    <option value="{{ o.org_id }}">{{ o.org_name }}</option>
-                    {% endfor %}
-                </select>
-
-                <label for="semester">Semester:</label>
-                <select name="semester" required>
-                    <option value="">Select Semester</option>
-                    <option value="1st">1st Semester</option>
-                    <option value="2nd">2nd Semester</option>
-                </select>
-
-                <label for="year">Academic Year:</label>
-                <select name="year" required>
-                    <option value="">Select Academic Year</option>
-                    {% for y in range(2010, 2031) %}
-                    <option value="{{ y }}">{{ y }}</option>
-                    {% endfor %}
-                </select>
-
-                <button type="submit">View Late Payments</button>
-            </form>
-
+            
+            <!-- View -->
+            <li>
+                <button type="button" onclick="showForm('formLatePayments')">
+                    6. View all late payments made by all members of a given organization for a given semester and academic year.
+                </button>
+                <form id="formLatePayments" class="viewby-form" style="display:none;" method="POST" action="{{ url_for('view_late_payments') }}">
+                    <select name="org_id" required>
+                        <option value="">Select Organization</option>
+                        {% for o in orgs %}
+                        <option value="{{ o.org_id }}">{{ o.org_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="semester" required>
+                        <option value="">Select Semester</option>
+                        <option value="1st">1st Semester</option>
+                        <option value="2nd">2nd Semester</option>
+                    </select>
+                    <select name="year" required>
+                        <option value="">Select Academic Year</option>
+                        {% for y in range(2010, 2031) %}
+                        <option value="{{ y }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">View</button>
+                </form>
+            </li>
+            
             <!-- View -->
             <li>
             <button type="button" onclick="showForm('formActiveInactive')">
-                6. Percentage of active vs inactive members of a given organization for the last n semesters.
+                7. Percentage of active vs inactive members of a given organization for the last n semesters.
             </button>
             <form id="formActiveInactive" class="viewby-form" style="display:none;" action="{{ url_for('view_active_inactive') }}" method="get">
                 <select name="org_id" required>
@@ -262,7 +313,7 @@
             <!-- View -->
             <li>
             <button type="button" onclick="showForm('formAlumniAsOf')">
-                7. Alumni members of a given organization for a given academic year.
+                8. Alumni members of a given organization for a given academic year.
             </button>
             <form id="formAlumniAsOf" class="viewby-form" style="display:none;" action="{{ url_for('view_alumni_as_of') }}" method="get">
                 <select name="org_id" required>
@@ -281,7 +332,7 @@
             </form>
             </li>
         
-            <li><button type="button" onclick="showForm('formTotalFees')">8. Total amount of unpaid and paid fees or dues of a given organization as of a given date.
+            <li><button type="button" onclick="showForm('formTotalFees')">9. Total amount of unpaid and paid fees or dues of a given organization as of a given date.
             </button>
             <form id="formTotalFees" class="viewby-form" style="display:none;" action="{{ url_for('org_fee_summary') }}" method="get">
                 <select name="org_id" required>
@@ -294,7 +345,7 @@
                 <button type="submit">View</button>
             </form>
             </li>
-            <li><button type="button" onclick="showForm('formHighestDebt')">9. Member/s with the highest debt of a given organization for a given semester.               
+            <li><button type="button" onclick="showForm('formHighestDebt')">10. Member/s with the highest debt of a given organization for a given semester.               
             </button>
             <form id="formHighestDebt" class="viewby-form" style="display:none;" action="{{ url_for('highest_debt') }}" method="get">
                 <select name="org_id" required>

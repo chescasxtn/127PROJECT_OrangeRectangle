@@ -7,7 +7,7 @@ app = Flask(__name__)
 # MariaDB connection settings (update these with your actual credentials)
 DB_CONFIG = {
     'user': 'root',        # <-- change this
-    'password': 'Assnee23!',    # <-- change this
+    'password': '1029pqwo',    # <-- change this
     'host': 'localhost',
     'database': '127project'     # <-- change this
 }
@@ -213,14 +213,16 @@ def search():
     # Search by first name or last name using LIKE for partial matches
     cur.execute("""
         SELECT m.membership_id, s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-               s.gender, s.degree_program, s.batch, s.committee,
-               o.org_id, o.org_name, r.role_id, r.role_name, m.status, m.semester, m.academic_year
+            s.gender, s.degree_program, s.batch, s.committee,
+            o.org_id, o.org_name, r.role_id, r.role_name, m.status, m.semester, m.academic_year
         FROM memberships m
         JOIN students s ON m.student_id = s.student_id
         JOIN organizations o ON m.org_id = o.org_id
         JOIN org_roles r ON m.role_id = r.role_id
-        WHERE s.first_name LIKE %s OR s.last_name LIKE %s
-    """, (f"%{member_name}%", f"%{member_name}%"))
+        WHERE CONCAT(s.first_name, ' ', s.last_name) LIKE %s
+        OR s.first_name LIKE %s
+        OR s.last_name LIKE %s
+    """, (f"%{member_name}%", f"%{member_name}%", f"%{member_name}%"))
     memberships = cur.fetchall()
     cur.execute("SELECT student_id, CONCAT(first_name, ' ', last_name) AS full_name FROM students")
     students = cur.fetchall()
@@ -229,7 +231,66 @@ def search():
     cur.execute("SELECT role_id, role_name FROM org_roles")
     roles = cur.fetchall()
     conn.close()
-    return render_template('index.html', memberships=memberships, students=students, orgs=orgs, roles=roles)
+    return render_template(
+        'index.html',
+        memberships=memberships,
+        students=students,
+        orgs=orgs,
+        roles=roles,
+        searched=member_name  
+    )
+
+@app.route('/view_all_members_by_filters', methods=['GET'])
+def view_all_members_by_filters():
+    org_id = request.args.get('org_id')
+    role_id = request.args.get('role_id')
+    status = request.args.get('status')
+    gender = request.args.get('gender')
+    degree_program = request.args.get('degree_program')
+    batch = request.args.get('batch')
+    committee = request.args.get('committee')
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+
+    query = """
+        SELECT s.student_id, s.first_name, s.last_name, m.status, s.gender, s.degree_program, s.batch, s.committee,
+               o.org_name, r.role_name, m.semester, m.academic_year
+        FROM memberships m
+        JOIN students s ON m.student_id = s.student_id
+        JOIN organizations o ON m.org_id = o.org_id
+        JOIN org_roles r ON m.role_id = r.role_id
+        WHERE m.org_id = %s
+    """
+    params = [org_id]
+
+    if role_id:
+        query += " AND m.role_id = %s"
+        params.append(role_id)
+    if status:
+        query += " AND m.status = %s"
+        params.append(status)
+    if gender:
+        query += " AND s.gender = %s"
+        params.append(gender)
+    if degree_program:
+        query += " AND s.degree_program = %s"
+        params.append(degree_program)
+    if batch:
+        query += " AND s.batch = %s"
+        params.append(batch)
+    if committee:
+        query += " AND s.committee LIKE %s"
+        params.append(f"%{committee}%")
+
+    query += " ORDER BY s.last_name, s.first_name"
+
+    cur.execute(query, tuple(params))
+    members = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return render_template('filtered_members.html', members=members)
 
 @app.route('/view_exec_committee')
 def view_exec_committee():
@@ -293,6 +354,33 @@ def view_role_by_year():
         role_name=members[0]['role_name'] if members else '',
     )
 
+@app.route('/view_late_payments', methods=['POST'])
+def view_late_payments():
+    org_id = request.form['org_id']
+    semester = request.form['semester']
+    year = request.form['year']
+
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+
+    query = """
+        SELECT s.student_id, s.first_name, s.last_name, m.status, f.amount, f.due_date, f.date_paid
+        FROM fees f
+        JOIN memberships m ON f.membership_id = m.membership_id
+        JOIN students s ON m.student_id = s.student_id
+        WHERE f.org_id = %s
+        AND m.semester = %s
+        AND m.academic_year = %s
+        AND f.fee_status = 'late'
+    """
+    cur.execute(query, (org_id, semester, year))
+    late_payments = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template('late_payments.html', late_payments=late_payments, semester=semester, year=year)
+    
 @app.route('/view_active_inactive')
 def view_active_inactive():
     org_id = request.args.get('org_id')

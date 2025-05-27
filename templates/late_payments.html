@@ -1,44 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Late Payments</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
     <main class="main">
-    <h1>Late Payments</h1>
-
-    {% if payments %}
-        <table border="1">
-        <thead>
-            <tr>
-                <th>Student ID</th>
-                <th>Name</th>
-                <th>Amount</th>
-                <th>Due Date</th>
-                <th>Date Paid</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in payments %}
-            <tr>
-                <td>{{ p.student_id }}</td>
-                <td>{{ p.first_name }} {{ p.last_name }}</td>
-                <td>{{ p.amount }}</td>
-                <td>{{ p.due_date }}</td>
-                <td>{{ p.date_paid }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No late payments found.</p>
-    {% endif %}
-    <a class="btn" href="{{ url_for('index') }}">Back</a>   
-</main>
+        <h2>Late Payments for Semester {{ semester }}, {{ year }}</h2>
+        {% if late_payments %}
+            <table class="members-table">
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Date Paid</th>
+                </tr>
+                {% for p in late_payments %}
+                <tr>
+                    <td>{{ p.student_id }}</td>
+                    <td>{{ p.first_name }} {{ p.last_name }}</td>
+                    <td>{{ "{:,.2f}".format(p.amount) if p.amount is not none else "N/A" }}</td>
+                    <td>{{ p.due_date or "N/A" }}</td>
+                    <td>{{ p.date_paid or "N/A" }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No late payments found for this organization and semester/year.</p>
+        {% endif %}
+        <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
 </div>
 </body>
 </html>
