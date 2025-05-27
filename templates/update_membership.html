@@ -1,56 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Update Membership</title>
+    <title>Update Member</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-    <h2>Update Membership</h2>
-
-    <form method="post">
-        <label for="student_id">Student</label>
-        <select name="student_id" id="student_id" required>
+<div class="container">
+    <main class="main">
+    <h2 style="text-align:center;">Update Member Details</h2>
+    <form method="POST">
+        <label for="student_id">Student:</label>
+        <select name="student_id" required>
             {% for student in students %}
-                <option value="{{ student.student_id }}"
-                    {% if student.student_id == membership.student_id %}selected{% endif %}>
+                <option value="{{ student.student_id }}" {% if student.student_id == membership.student_id %}selected{% endif %}>
                     {{ student.student_name }}
                 </option>
             {% endfor %}
         </select>
 
-        <label for="org_id">Organization</label>
-        <select name="org_id" id="org_id" required>
+        <label for="org_id">Organization:</label>
+        <select name="org_id" required>
             {% for org in orgs %}
-                <option value="{{ org.org_id }}"
-                    {% if org.org_id == membership.org_id %}selected{% endif %}>
+                <option value="{{ org.org_id }}" {% if org.org_id == membership.org_id %}selected{% endif %}>
                     {{ org.org_name }}
                 </option>
             {% endfor %}
         </select>
 
-        <label for="role_id">Role</label>
-        <select name="role_id" id="role_id" required>
+        <label for="role_id">Role:</label>
+        <select name="role_id" required>
             {% for role in roles %}
-                <option value="{{ role.role_id }}"
-                    {% if role.role_id == membership.role_id %}selected{% endif %}>
+                <option value="{{ role.role_id }}" {% if role.role_id == membership.role_id %}selected{% endif %}>
                     {{ role.role_name }}
                 </option>
             {% endfor %}
         </select>
 
-        <label for="status">Status</label>
-        <select name="status" id="status" required>
-            <option value="active" {% if membership.status == 'active' %}selected{% endif %}>Active</option>
-            <option value="inactive" {% if membership.status == 'inactive' %}selected{% endif %}>Inactive</option>
-        </select>
+        <label for="status">Status:</label>
+        <input type="text" name="status" value="{{ membership.status }}" required>
 
-        <button type="submit">Update Membership</button>
+        <button type="submit">Update</button>
+        <a class="btn" href="{{ url_for('index') }}">Back</a>
     </form>
-
-    <div class="back-link">
-        <a href="{{ url_for('index') }}">← Back to Membership List</a>
-    </div>
-
+</main>
+</div>
 </body>
 </html>
