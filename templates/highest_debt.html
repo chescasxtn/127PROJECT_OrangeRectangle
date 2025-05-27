@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Highest Debt Members</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <main class="main">
+    <h1>Highest Debt Member</h1>
+    <p>Semester: {{ semester }} | Year: {{ year }}</p>
+
+    {% if top_debtors %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Total Debt</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for debtor in top_debtors %}
+            <tr>
+                <td>{{ debtor.student_id }}</td>
+                <td>{{ debtor.first_name }} {{ debtor.last_name }}</td>
+                <td>{{ debtor.total_debt }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No unpaid fees found for the selected organization and semester.</p>
+    {% endif %}
+
+    <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
+</div>
+</body>
+</html>
