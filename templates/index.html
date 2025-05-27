@@ -214,8 +214,34 @@
                 <button type="submit">View</button>
             </form>
             </li>
-            <li><button type="button">5. Late payments made by all members of a given organization for a given semester and academic year.</button></li>
-           
+            <li><button type="button" onclick="showForm('formLatePayments')">5. Late payments made by all members of a given organization for a given semester and academic year.</button></li>
+            <form id="formLatePayments" action="{{ url_for('late_payments') }}" method="get" class="viewby-form" style="margin-top: 20px;">
+                <label for="org_id">Organization:</label>
+                <select name="org_id" required>
+                    <option value="">Select Organization</option>
+                    {% for o in orgs %}
+                    <option value="{{ o.org_id }}">{{ o.org_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="semester">Semester:</label>
+                <select name="semester" required>
+                    <option value="">Select Semester</option>
+                    <option value="1st">1st Semester</option>
+                    <option value="2nd">2nd Semester</option>
+                </select>
+
+                <label for="year">Academic Year:</label>
+                <select name="year" required>
+                    <option value="">Select Academic Year</option>
+                    {% for y in range(2010, 2031) %}
+                    <option value="{{ y }}">{{ y }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">View Late Payments</button>
+            </form>
+
             <!-- View -->
             <li>
             <button type="button" onclick="showForm('formActiveInactive')">
@@ -348,10 +374,12 @@
             <td>{{ m.role_name }}</td>
             <td>{{ m.status }}</td>
             <td>
-                <form action="{{ url_for('update', membership_id=m.membership_id) }}" method="post" style="display:inline;">
-                    <button class="action-btn" type="submit" disabled>Update</button>
+                <form action="{{ url_for('update', membership_id=m.membership_id) }}" method="get" style="display:inline;">
+                    <button class="action-btn" type="submit">Update</button>
                 </form>
-                <a class="action-btn delete" href="{{ url_for('delete', membership_id=m.membership_id) }}">Delete</a>
+                <form action="{{ url_for('delete_membership', membership_id=m.membership_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this membership?');">
+                    <button type="submit" class="action-btn delete">Delete</button>
+                </form>
             </td>
         </tr>
         {% endfor %}
