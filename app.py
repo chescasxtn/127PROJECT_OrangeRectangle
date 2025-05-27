@@ -7,7 +7,7 @@ app = Flask(__name__)
 # MariaDB connection settings (update these with your actual credentials)
 DB_CONFIG = {
     'user': 'root',        # <-- change this
-    'password': '1029pqwo',    # <-- change this
+    'password': 'Assnee23!',    # <-- change this
     'host': 'localhost',
     'database': '127project'     # <-- change this
 }
@@ -196,7 +196,7 @@ def update(membership_id):
     cur.execute("SELECT org_id, org_name FROM organizations")
     orgs = cur.fetchall()
 
-    cur.execute("SELECT role_id, role_name FROM roles")
+    cur.execute("SELECT role_id, role_name FROM org_roles")
     roles = cur.fetchall()
 
     cur.close()
