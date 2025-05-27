@@ -7,7 +7,7 @@ app = Flask(__name__)
 # MariaDB connection settings (update these with your actual credentials)
 DB_CONFIG = {
     'user': 'root',        # <-- change this
-    'password': 'Assnee23!',    # <-- change this
+    'password': '1029pqwo',    # <-- change this
     'host': 'localhost',
     'database': '127project'     # <-- change this
 }
@@ -178,14 +178,16 @@ def search():
     # Search by first name or last name using LIKE for partial matches
     cur.execute("""
         SELECT m.membership_id, s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-               s.gender, s.degree_program, s.batch, s.committee,
-               o.org_id, o.org_name, r.role_id, r.role_name, m.status, m.semester, m.academic_year
+            s.gender, s.degree_program, s.batch, s.committee,
+            o.org_id, o.org_name, r.role_id, r.role_name, m.status, m.semester, m.academic_year
         FROM memberships m
         JOIN students s ON m.student_id = s.student_id
         JOIN organizations o ON m.org_id = o.org_id
         JOIN org_roles r ON m.role_id = r.role_id
-        WHERE s.first_name LIKE %s OR s.last_name LIKE %s
-    """, (f"%{member_name}%", f"%{member_name}%"))
+        WHERE CONCAT(s.first_name, ' ', s.last_name) LIKE %s
+        OR s.first_name LIKE %s
+        OR s.last_name LIKE %s
+    """, (f"%{member_name}%", f"%{member_name}%", f"%{member_name}%"))
     memberships = cur.fetchall()
     cur.execute("SELECT student_id, CONCAT(first_name, ' ', last_name) AS full_name FROM students")
     students = cur.fetchall()
@@ -194,7 +196,14 @@ def search():
     cur.execute("SELECT role_id, role_name FROM org_roles")
     roles = cur.fetchall()
     conn.close()
-    return render_template('index.html', memberships=memberships, students=students, orgs=orgs, roles=roles)
+    return render_template(
+        'index.html',
+        memberships=memberships,
+        students=students,
+        orgs=orgs,
+        roles=roles,
+        searched=member_name  
+    )
 
 @app.route('/view_exec_committee')
 def view_exec_committee():

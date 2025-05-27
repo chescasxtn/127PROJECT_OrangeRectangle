@@ -197,3 +197,21 @@ body {
 .viewby-list button:hover {
     background: #e0e7ef;
 }
+
+a.btn, button.btn {
+    display: inline-block;
+    background: #eab308;
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+    font-size: 1em;
+    text-align: center;
+    line-height: normal;
+    box-sizing: border-box;
+    vertical-align: middle;
+}

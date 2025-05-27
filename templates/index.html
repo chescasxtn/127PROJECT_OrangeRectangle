@@ -117,8 +117,10 @@
         <h2>View Members</h2>
         <form class="search-member-form" action="{{ url_for('search') }}" method="get" style="margin-bottom:20px;">
             <input type="text" name="member_name" placeholder="Search by Member Name" required>
+            <button class="btn" type="submit">Search</button>
             <a class="btn" href="{{ url_for('index') }}">Show All</a>
         </form>
+
         <button class="btn" id="viewByBtn" type="button">View By</button>
 
         <!--
