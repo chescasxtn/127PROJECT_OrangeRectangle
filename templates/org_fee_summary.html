@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Organization Fee Summary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <main class="main">
+    <h1>Fee Summary as of {{ as_of_date }}</h1>
+
+    {% if totals %}
+    <table border="1">
+        <tr>
+            <th>Status</th>
+            <th>Total Amount</th>
+        </tr>
+        <tr>
+            <td>Paid</td>
+            <td>{{ totals.paid }}</td>
+        </tr>
+        <tr>
+            <td>Unpaid</td>
+            <td>{{ totals.unpaid }}</td>
+        </tr>
+    </table>
+    {% else %}
+    <p class="no-data">No unpaid members found for the selected organization and semester/year.</p>
+    {% endif %}
+    <a class="btn" href="{{ url_for('index') }}">Back</a>
+    </main>
+</div>
+</body>
+</html>
